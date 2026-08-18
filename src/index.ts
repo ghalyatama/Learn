@@ -6,7 +6,7 @@ const port = Number(process.env.PORT) || 3000;
 
 const app = new Elysia()
   .get("/", () => ({
-    message: "Hello from Bun + Elysia + Drizzle + PostgreSQL!",
+    message: "Hello from Bun + Elysia + Drizzle + MySQL!",
     status: "ok",
   }))
   .get("/users", async () => {
@@ -21,16 +21,20 @@ const app = new Elysia()
     "/users",
     async ({ body, set }) => {
       try {
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            name: body.name,
-            email: body.email,
-          })
-          .returning();
+        const result = await db.insert(users).values({
+          name: body.name,
+          email: body.email,
+        });
 
         set.status = 201;
-        return { success: true, data: newUser };
+        return {
+          success: true,
+          data: {
+            name: body.name,
+            email: body.email,
+            insertId: result[0].insertId,
+          },
+        };
       } catch (error) {
         set.status = 400;
         return { success: false, error: (error as Error).message };
