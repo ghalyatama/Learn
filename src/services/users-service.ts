@@ -76,5 +76,30 @@ export class UsersService {
     // 5. Kembalikan token
     return { data: token };
   }
+
+  static async getCurrentUser(token: string) {
+    // Cari data user berdasarkan token di tabel sessions
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.token, token))
+      .limit(1);
+
+    const user = result[0];
+
+    // Jika token tidak valid atau tidak ditemukan
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    return { data: user };
+  }
 }
+
 
