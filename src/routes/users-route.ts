@@ -44,5 +44,35 @@ export const usersRoute = new Elysia({ prefix: "/users" })
         password: t.String({ minLength: 1, error: "Password tidak boleh kosong" }),
       }),
     }
+  )
+  .get(
+    "/login",
+    async ({ headers, set }) => {
+      try {
+        const authHeader = headers["authorization"] || headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+
+        const token = authHeader.substring(7).trim();
+
+        if (!token) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+
+        const result = await UsersService.getCurrentUser(token);
+        set.status = 200;
+        return result;
+      } catch (error: any) {
+        set.status = 401;
+        return {
+          error: "Unauthorized",
+        };
+      }
+    }
   );
+
 
